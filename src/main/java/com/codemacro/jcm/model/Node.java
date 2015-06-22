@@ -1,36 +1,82 @@
+/*******************************************************************************
+ *  Copyright Kevin Lynx (kevinlynx@gmail.com) 2015
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *******************************************************************************/
 package com.codemacro.jcm.model;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 import static com.codemacro.jcm.model.Common.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Node {
   public static class ServiceProto {
     public short port;
-    public int proto;
-    
+    public ProtoType proto;
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + port;
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (!(obj instanceof ServiceProto)) {
+        return false;
+      }
+      ServiceProto other = (ServiceProto) obj;
+      if (port != other.port) {
+        return false;
+      }
+      if (proto != other.proto) {
+        return false;
+      }
+      return true;
+    }
+
     @Override
     public String toString() {
-      return PROTO_STR[proto] + ":" + port;
+      return PROTO_STR.get(proto) + ":" + port;
     }
-    
+
     static ServiceProto fromString(String str) {
       String[] kvs = str.split(":");
       if (kvs.length != 2) {
         throw new IllegalArgumentException(str);
       }
       ServiceProto proto = new ServiceProto();
-      for (int i = 0; i < PROTO_STR.length; ++i) {
-        if (PROTO_STR[i].equals(kvs[0])) {
-          proto.proto = i;
-        }
-      }
+      proto.proto = Common.getProtoType(kvs[0]);
       proto.port = (short) Integer.parseInt(kvs[1]);
       return proto;
     }
   }
 
   private String ip;
-  private ServiceProto[] proto;
+  private Set<ServiceProto> protos;
   private String udata;
   private NodeStatus status = NodeStatus.INVALID;
   private OnlineStatus online = OnlineStatus.ONLINE;
@@ -46,24 +92,24 @@ public class Node {
     this.ip = ip;
     this.udata = udata;
     String[] ps = protoStr.split("\\|");
-    this.proto = new ServiceProto[2];
+    this.protos = new HashSet<ServiceProto>();
     for (String s : ps) {
       ServiceProto sp = ServiceProto.fromString(s);
-      if (this.proto[sp.proto] != null) {
+      if (getProto(sp.proto) != null) {
         throw new IllegalArgumentException(protoStr);
       }
-      this.proto[sp.proto] = sp;
+      this.protos.add(sp);
     }
   }
 
   @JsonIgnore
   public String getSpec() {
-    String spec = ip + "|" + proto[0];
-    if (proto[1] != null) {
-      spec += "|" + proto[1];
+    if (protos.size() == 1) {
+      return ip + "|" + protos.iterator().next();
+    } else {
+      String spec = ip + "|" + getProto(ProtoType.HTTP) + "|" + getProto(ProtoType.TCP);
+      return spec;
     }
-    System.out.println(spec);
-    return spec;
   }
 
   public String getIp() {
@@ -74,12 +120,18 @@ public class Node {
     this.ip = ip;
   }
 
-  public ServiceProto[] getProto() {
-    return proto;
+  public Set<ServiceProto> getProtos() {
+    return protos;
   }
 
-  public ServiceProto getProto(int ptype) {
-    return this.proto[ptype];
+  @JsonIgnore
+  public ServiceProto getProto(ProtoType ptype) {
+    for (ServiceProto p : this.protos) {
+      if (p.proto == ptype) {
+        return p;
+      }
+    }
+    return null;
   }
 
   public String getUdata() {
@@ -121,5 +173,10 @@ public class Node {
     }
     Node other = (Node) obj;
     return other.getSpec().equals(getSpec());
+  }
+  
+  @Override
+  public String toString() {
+    return getSpec();
   }
 }

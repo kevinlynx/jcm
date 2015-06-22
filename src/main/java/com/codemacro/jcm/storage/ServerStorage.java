@@ -1,9 +1,26 @@
+/*******************************************************************************
+ *  Copyright Kevin Lynx (kevinlynx@gmail.com) 2015
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *******************************************************************************/
 package com.codemacro.jcm.storage;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.codemacro.jcm.health.HealthCheckManager;
 import com.codemacro.jcm.util.ZookeeperLeaderElector;
 
 public class ServerStorage extends ZookeeperPathWatcher {
@@ -11,8 +28,13 @@ public class ServerStorage extends ZookeeperPathWatcher {
   private static final String JCM_PREFIX = "jcm_server";
   private String serverSpec;
   private String leaderSpec;
+  private HealthCheckManager healthCheckManager;
 
-  public ServerStorage(String serverSpec) {
+  public ServerStorage() { // Spring need this, but will not call this!
+  }
+
+  public ServerStorage(HealthCheckManager healthCheckManager, String serverSpec) {
+    this.healthCheckManager = healthCheckManager;
     this.serverSpec = serverSpec;
   }
 
@@ -58,6 +80,9 @@ public class ServerStorage extends ZookeeperPathWatcher {
   @Override
   void onListChanged() {
     logger.info("server list changed");
-    // TODO: notify to health checking module
+    // TODO:
+    if (healthCheckManager != null) {
+      healthCheckManager.onServerListChanged(null, serverSpec);
+    }
   }
 }

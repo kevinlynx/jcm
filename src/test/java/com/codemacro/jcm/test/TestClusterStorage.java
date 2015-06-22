@@ -1,3 +1,18 @@
+/*******************************************************************************
+ *  Copyright Kevin Lynx (kevinlynx@gmail.com) 2015
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *******************************************************************************/
 package com.codemacro.jcm.test;
 
 import java.io.IOException;
@@ -39,7 +54,7 @@ public class TestClusterStorage {
   public void tearDown() throws InterruptedException {
     ZooKeeperUtil.delete(zkStorage.getZooKeeper(), ROOT);
     zkStorage.close();
-  }
+  } 
 
   @Test
   public void testCreate() throws IOException, InterruptedException {
@@ -62,7 +77,7 @@ public class TestClusterStorage {
     assertEquals(1, clusterManager.getAll().size());
     
     ClusterManager cMgr2 = new ClusterManager();
-    ClusterStorage cStorage2 = new ClusterStorage(cMgr2);
+    ClusterStorage cStorage2 = new ClusterStorage(cMgr2, null);
     ZookeeperStorageEngine ze2 = new ZookeeperStorageEngine(ROOT);
     ze2.addWatcher(cStorage2);
     ze2.open(ZKHOST, 5000);

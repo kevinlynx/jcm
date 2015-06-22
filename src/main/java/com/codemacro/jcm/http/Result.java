@@ -13,30 +13,42 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  *******************************************************************************/
-package com.codemacro.jcm.util;
+package com.codemacro.jcm.http;
 
-import java.util.List;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-public class ZookeeperLeaderElector {
-  public static byte[] elect(ZooKeeper zk, String path, final String prefix) 
-      throws KeeperException, InterruptedException {
-    List<String> children = zk.getChildren(path, false);
-    if (children.size() == 0) {
-      return null;
-    }
-    int min = -1;
-    String minPath = null;
-    for (String child : children) {
-      String idStr = child.substring(prefix.length());
-      int id = Integer.parseInt(idStr);
-      if (min < 0 || id < min) {
-        min = id;
-        minPath = child;
-      }
-    }
-    String fullPath = path + "/" + minPath;
-    return zk.getData(fullPath, false, null);
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class Result {
+  public static final Result OK = new Result();
+  public static final Result FAILED = new Result(-1, "failed");
+  private int code;
+  private String msg;
+  private Object data;
+  
+  public Result(Object data) {
+    this();
+    this.data = data;
+  }
+
+  public Result(int code, String msg) {
+    this.code = code;
+    this.msg = msg;
+  }
+  
+  public Result() {
+    this.code = 0;
+    this.msg = "";
+  }
+
+  public int getCode() {
+    return code;
+  }
+
+  public String getMsg() {
+    return msg;
+  }
+  
+  public Object getData() {
+    return data;
   }
 }

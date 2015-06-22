@@ -8,9 +8,27 @@
     </bean>
     <bean id="clusterStorage" class="com.codemacro.jcm.storage.ClusterStorage">
         <constructor-arg ref="clusterManager" />
+        <constructor-arg ref="healthCheckManager" />
+    </bean>
+    <bean id="serverStorage" class="com.codemacro.jcm.storage.ServerStorage">
+        <constructor-arg ref="healthCheckManager" />
+        <constructor-arg type="java.lang.String" value="127.0.0.1|8000" />
+    </bean>
+    <bean id="statusStorage" class="com.codemacro.jcm.storage.StatusStorage">
+        <constructor-arg ref="clusterManager" />
+    </bean>
+    <bean id="healthCheckManager" class="com.codemacro.jcm.health.HealthCheckManager">
+        <constructor-arg ref="statusStorage" />
     </bean>
     <bean id="zookeeperStorageEngine" class="com.codemacro.jcm.storage.ZookeeperStorageEngine">
         <constructor-arg type="java.lang.String" value="/jcm" />
+    </bean>
+    <bean id="jcmApplication" class="com.codemacro.jcm.JCMApplication">
+        <constructor-arg ref="zookeeperStorageEngine" />
+        <constructor-arg ref="serverStorage" />
+        <constructor-arg ref="clusterStorage" />
+        <constructor-arg ref="statusStorage" />
+        <constructor-arg ref="healthCheckManager" />
     </bean>
 </beans>
 
