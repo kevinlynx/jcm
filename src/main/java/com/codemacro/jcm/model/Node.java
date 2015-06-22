@@ -34,6 +34,7 @@ public class Node {
       final int prime = 31;
       int result = 1;
       result = prime * result + port;
+      result = prime * result + ((proto == null) ? 0 : proto.hashCode());
       return result;
     }
 

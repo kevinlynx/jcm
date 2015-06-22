@@ -15,14 +15,23 @@
  *******************************************************************************/
 package com.codemacro.jcm.health;
 
-import java.util.Map;
+import com.codemacro.jcm.util.Hash;
 
-import com.codemacro.jcm.model.Cluster;
-import com.codemacro.jcm.model.Common.CheckType;
-import com.codemacro.jcm.model.Common.NodeStatus;
-
-// to make writing unit tests easier
-public interface CheckProvider {
-  Map<String, Cluster> getCheckClusters(final CheckType checkType);
-  void flushCheckResults(String clusterName, Map<String, NodeStatus> statusList);
+public class ServerLocator {
+  private String serverSpec;
+  private long serverHash;
+  private int serverId = 0;
+  private int bucketCnt = 0;
+  
+  public void serversChanged(String spec, int total) {
+    serverSpec = spec;
+    bucketCnt = total;
+    serverHash = Hash.murhash(serverSpec);
+    serverId = Hash.consistentHash(serverHash, total);
+  }
+  
+  public boolean isResponsible(String clusterName) {
+    long hash = Hash.murhash(clusterName);
+    return serverId == Hash.consistentHash(hash, bucketCnt);
+  }
 }

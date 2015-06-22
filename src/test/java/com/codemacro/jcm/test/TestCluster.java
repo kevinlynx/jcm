@@ -22,6 +22,7 @@ import java.util.Set;
 import com.codemacro.jcm.model.Cluster;
 import com.codemacro.jcm.model.Common.NodeStatus;
 import com.codemacro.jcm.model.Node;
+import com.codemacro.jcm.util.Hash;
 import com.codemacro.jcm.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -56,5 +57,15 @@ public class TestCluster extends TestCase {
     Map<String, NodeStatus> map = 
       JsonUtil.fromString(json, new TypeReference<Map<String, NodeStatus>>() {});
     System.out.println(map);
+  }
+  
+  // http://stackoverflow.com/questions/12319560/how-should-i-use-guavas-hashingconsistenthash
+  public void testHash() {
+    long h = Hash.murhash("server1");
+    assertEquals(Hash.consistentHash(h, 5), Hash.consistentHash(h, 4));
+    for (int i = 0; i < 20; ++i) {
+      h = Hash.murhash("server" + i);
+      System.out.println(Hash.consistentHash(h, 5));
+    }
   }
 }

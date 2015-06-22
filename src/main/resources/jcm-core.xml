@@ -18,6 +18,7 @@
         <constructor-arg ref="clusterManager" />
     </bean>
     <bean id="healthCheckManager" class="com.codemacro.jcm.health.HealthCheckManager">
+        <constructor-arg ref="clusterManager" />
         <constructor-arg ref="statusStorage" />
     </bean>
     <bean id="zookeeperStorageEngine" class="com.codemacro.jcm.storage.ZookeeperStorageEngine">

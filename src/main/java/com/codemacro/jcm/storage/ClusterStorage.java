@@ -58,7 +58,7 @@ public class ClusterStorage extends ZookeeperPathWatcher {
       clusterManager.remove(name);
     }
     if (healthCheckManager != null) {
-      healthCheckManager.onClusterListChanged(clusterManager.getAll());
+      healthCheckManager.onClusterListChanged();
     }
   }
 
@@ -67,7 +67,7 @@ public class ClusterStorage extends ZookeeperPathWatcher {
     touch(fullPath);
     loadClusters();
     if (healthCheckManager != null) {
-      healthCheckManager.onClusterListChanged(clusterManager.getAll());
+      healthCheckManager.onClusterListChanged();
     }
   }
   

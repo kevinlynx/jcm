@@ -80,9 +80,8 @@ public class ServerStorage extends ZookeeperPathWatcher {
   @Override
   void onListChanged() {
     logger.info("server list changed");
-    // TODO:
     if (healthCheckManager != null) {
-      healthCheckManager.onServerListChanged(null, serverSpec);
+      healthCheckManager.onServerListChanged(getChildren().size(), serverSpec);
     }
   }
 }
