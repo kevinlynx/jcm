@@ -23,31 +23,25 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import com.codemacro.jcm.model.Cluster;
 import com.codemacro.jcm.model.ClusterManager;
 import com.codemacro.jcm.storage.ClusterStorage;
 import com.codemacro.jcm.storage.ZookeeperStorageEngine;
 import com.codemacro.jcm.util.ZooKeeperUtil;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:jcm-core.xml")
 public class TestClusterStorage {
   final static String ZKHOST = "127.0.0.1:2181";
-  final static String ROOT = "/jcm";
-  @Autowired
-  ClusterStorage clusterStorage;
-  @Autowired
+  final static String ROOT = "/jcm_ut";
   ZookeeperStorageEngine zkStorage;
-  @Autowired
   ClusterManager clusterManager;
+  ClusterStorage clusterStorage;
   
   @Before
   public void setUp() {
+    zkStorage = new ZookeeperStorageEngine();
+    clusterManager = new ClusterManager();
+    clusterStorage = new ClusterStorage(clusterManager, null);
+  
   }
   
   @After
@@ -58,29 +52,33 @@ public class TestClusterStorage {
 
   @Test
   public void testCreate() throws IOException, InterruptedException {
+    zkStorage.init(ZKHOST, ROOT, 5000);
     zkStorage.addWatcher(clusterStorage);
-    zkStorage.open(ZKHOST, 5000);
+    zkStorage.open();
     assertEquals(0, clusterManager.getAll().size());
     clusterStorage.updateCluster(createCluster());
     assertEquals(1, clusterManager.getAll().size());
     zkStorage.close();
     clusterManager.getAll().clear();
-    zkStorage.open(ZKHOST, 5000);
+    zkStorage.init(ZKHOST, ROOT, 5000);
+    zkStorage.open();
     assertEquals(1, clusterManager.getAll().size());
   }
   
   @Test
   public void testSync() throws IOException, InterruptedException {
+    zkStorage.init(ZKHOST, ROOT, 5000);
     zkStorage.addWatcher(clusterStorage);
-    zkStorage.open(ZKHOST, 5000);
+    zkStorage.open();
     clusterStorage.updateCluster(createCluster());
     assertEquals(1, clusterManager.getAll().size());
     
     ClusterManager cMgr2 = new ClusterManager();
     ClusterStorage cStorage2 = new ClusterStorage(cMgr2, null);
-    ZookeeperStorageEngine ze2 = new ZookeeperStorageEngine(ROOT);
+    ZookeeperStorageEngine ze2 = new ZookeeperStorageEngine();
+    ze2.init(ZKHOST, ROOT, 5000);
     ze2.addWatcher(cStorage2);
-    ze2.open(ZKHOST, 5000);
+    ze2.open();
     assertEquals(1, cMgr2.getAll().size());
    
     // create

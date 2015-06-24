@@ -33,7 +33,7 @@ public abstract class ZookeeperPathWatcher {
   abstract void onListChanged();
   void onChildData(String childName) {}
   void onConnected() {}
-  void onDisconnected() {}
+  void onSessionExpired() {}
   
   void onRegister(ZookeeperStorageEngine zkStorage, String fullPath) {
     this.zkStorage = zkStorage;

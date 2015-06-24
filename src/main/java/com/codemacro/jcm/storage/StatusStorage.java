@@ -43,7 +43,9 @@ public class StatusStorage extends ZookeeperPathWatcher {
   public void writeStatusList(String clusterName, Map<String, NodeStatus> statusList) {
     String path = fullPath + "/" + clusterName;
     String data = JsonUtil.toString(statusList);
-    logger.debug("flush node status to cluster [{}]", clusterName);
+    if (logger.isTraceEnabled()) {
+      logger.trace("flush node status to cluster [{}]", clusterName);
+    }
     // update local status from zookeeper
     writeData(path, data.getBytes());
   }
@@ -84,7 +86,9 @@ public class StatusStorage extends ZookeeperPathWatcher {
           new TypeReference<Map<String, NodeStatus>>() {});
       Cluster cluster = clusterManager.find(name);
       if (cluster != null) {
-        logger.debug("update cluster [{}] nodes status", name);
+        if (logger.isTraceEnabled()) {
+          logger.trace("update cluster [{}] nodes status", name);
+        }
         cluster.setNodesStatus(statusList);
       } else {
         logger.warn("not found cluster [{}] when update node status", name);

@@ -29,13 +29,18 @@ public class ServerStorage extends ZookeeperPathWatcher {
   private String serverSpec;
   private String leaderSpec;
   private HealthCheckManager healthCheckManager;
+  private boolean registered = false;
 
   public ServerStorage() { // Spring need this, but will not call this!
   }
 
-  public ServerStorage(HealthCheckManager healthCheckManager, String serverSpec) {
+  public ServerStorage(HealthCheckManager healthCheckManager) {
     this.healthCheckManager = healthCheckManager;
-    this.serverSpec = serverSpec;
+  }
+
+  public void init(String ip, int httpPort, int tcpPort) {
+    this.serverSpec = String.format("%s|%d|%d", ip, httpPort, tcpPort);
+    logger.info("init server spec as {}", serverSpec);
   }
 
   public String electLeader() {
@@ -56,11 +61,14 @@ public class ServerStorage extends ZookeeperPathWatcher {
   @Override
   void onConnected() {
     touch(fullPath);
+    if (registered) {
+      return ;
+    }
     String path = fullPath + "/" + JCM_PREFIX;
     try {
       path = zkStorage.getZooKeeper().create(path, serverSpec.getBytes(), Ids.OPEN_ACL_UNSAFE, 
         CreateMode.EPHEMERAL_SEQUENTIAL);
-      getChildren(); // watch 
+      getChildren();
       logger.info("register server {} on zookeeper {} success", serverSpec, path);
     } catch (Exception e) {
       logger.error("register server on zookeeper failed {}", e);
@@ -68,8 +76,8 @@ public class ServerStorage extends ZookeeperPathWatcher {
   }
 
   @Override
-  void onDisconnected() { // TODO: handle reconnect stuff
-    logger.info("disconnect from zookeeper");
+  void onSessionExpired() { 
+    registered = false;
   }
 
   @Override

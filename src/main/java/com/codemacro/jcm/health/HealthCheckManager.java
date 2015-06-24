@@ -49,9 +49,9 @@ public class HealthCheckManager implements CheckProvider {
     checkers.add(new HttpChecker(this));
   }
   
-  public void startup() {
+  public void startup(int interval) {
     for (BaseChecker checker : checkers) {
-      checker.setInterval(1000);
+      checker.setInterval(interval);
       checker.startup();
     }
   }

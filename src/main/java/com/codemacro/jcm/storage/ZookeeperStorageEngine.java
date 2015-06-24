@@ -16,6 +16,7 @@
 package com.codemacro.jcm.storage;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -28,26 +29,34 @@ import org.slf4j.LoggerFactory;
 
 public class ZookeeperStorageEngine implements Watcher {
   private static Logger logger = LoggerFactory.getLogger(ZookeeperStorageEngine.class);
-  private ZooKeeper zk;
+  private volatile ZooKeeper zk;
   private String root;
   private CountDownLatch countDownLatch;
+  private int sessionTimeout;
+  private String zkHost;
   private Map<String, ZookeeperPathWatcher> watchers;
   
-  public ZookeeperStorageEngine(String root) {
-    this.root = root;
+  public ZookeeperStorageEngine() {
     // StatusStorage depends on ClusterStorage
-    this.watchers = new LinkedHashMap<String, ZookeeperPathWatcher>();
+    this.watchers = Collections.synchronizedMap(
+        new LinkedHashMap<String, ZookeeperPathWatcher>());
   }
 
-  public boolean open(String host, int msTimeout) throws IOException, InterruptedException {
+  public void init(String host, String root, int msTimeout) {
+    this.zkHost = host;
+    this.root = root;
+    this.sessionTimeout = msTimeout;
+  }
+
+  public boolean open() throws IOException, InterruptedException {
     this.countDownLatch = new CountDownLatch(1);
-    this.zk = new ZooKeeper(host, msTimeout, this);
+    this.zk = new ZooKeeper(zkHost, sessionTimeout, this);
     countDownLatch.await();
-    logger.info("connect zookeeper {} success", host);
+    logger.info("connect zookeeper {} success", zkHost);
     return true;
   }
 
-  public void close() throws InterruptedException {
+  public synchronized void close() throws InterruptedException {
     this.zk.close();
     logger.info("disconnect to zookeeper");
   }
@@ -63,25 +72,31 @@ public class ZookeeperStorageEngine implements Watcher {
     watchers.put(fullPath, watcher);
   }
 
+  // in the event thread
   public void process(WatchedEvent event) {
     if (event.getType() == Event.EventType.None) {
       switch (event.getState()) {
-      case SyncConnected:
+      case SyncConnected: // no matter session expired or not, we simply reload all
         for (ZookeeperPathWatcher w : watchers.values()) {
           w.onConnected();
         }
         countDownLatch.countDown();
         break;
-      case Disconnected:
-      case Expired:
+      case Disconnected: // zookeeper client will reconnect
+        logger.warn("disconnected from zookeeper");
+        break;
+      // to test session expired, just close the laptop cover, making OS sleeping
+      case Expired: // session expired by zookeeper server (after reconnected)
+        logger.warn("session expired from zookeeper");
         for (ZookeeperPathWatcher w : watchers.values()) {
-          w.onDisconnected();
+          w.onSessionExpired();
         }
+        reconnect();
+        break;
       default:
         break;
       }
     }
-    logger.debug("zookeeper event {}", event);
     String path = event.getPath();
     ZookeeperPathWatcher watcher = findWatcher(path);
     if (watcher == null) {
@@ -98,6 +113,16 @@ public class ZookeeperStorageEngine implements Watcher {
     }
   }
   
+  private synchronized void reconnect() {
+    try {
+      logger.info("reconnect to zookeeper...");
+      this.zk.close();
+      this.zk = new ZooKeeper(this.zkHost, this.sessionTimeout, this);
+    } catch (Exception e) {
+      logger.error("reconnect to zookeeper failed {}", e);
+    }
+  }
+
   private ZookeeperPathWatcher findWatcher(String fullPath) {
     if (fullPath == null) {
       return null; // not path event

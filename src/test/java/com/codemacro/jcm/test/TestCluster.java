@@ -16,6 +16,8 @@
 package com.codemacro.jcm.test;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,5 +69,9 @@ public class TestCluster extends TestCase {
       h = Hash.murhash("server" + i);
       System.out.println(Hash.consistentHash(h, 5));
     }
+  }
+  
+  public void testOther() throws UnknownHostException {
+    System.out.println(InetAddress.getLocalHost().getHostAddress());
   }
 }

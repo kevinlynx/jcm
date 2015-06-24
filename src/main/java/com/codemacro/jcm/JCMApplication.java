@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.codemacro.jcm.health.HealthCheckManager;
 import com.codemacro.jcm.storage.ClusterStorage;
 import com.codemacro.jcm.storage.ServerStorage;
@@ -33,6 +32,7 @@ public class JCMApplication {
   private ClusterStorage clusterStorage;
   private StatusStorage statusStorage;
   private HealthCheckManager healthCheckManager;
+  private JCMConfig config;
 
   public JCMApplication(ZookeeperStorageEngine zookeeperStorageEngine, 
       ServerStorage serverStorage, ClusterStorage clusterStorage,
@@ -47,11 +47,18 @@ public class JCMApplication {
   
   public boolean startup() throws IOException, InterruptedException {
     logger.info("JCM starting...");
+    logger.info("config [zookeeper.host={}]", config.zkHost);
+    logger.info("config [zookeeper.root={}]", config.zkRoot);
+    logger.info("config [zookeeper.timeout={}]", config.zkTimeout);
+    logger.info("config [server.port={}]", config.getServerPort());
+    logger.info("config [server.address={}]", config.getServerAddr());
+    serverStorage.init(config.getServerAddr(), config.getServerPort(), 0);
+    zkStorageEngine.init(config.zkHost, config.zkRoot, config.zkTimeout);
     zkStorageEngine.addWatcher(serverStorage);
     zkStorageEngine.addWatcher(clusterStorage);
     zkStorageEngine.addWatcher(statusStorage);
-    zkStorageEngine.open("127.0.0.1:2181", 5000);
-    healthCheckManager.startup();
+    zkStorageEngine.open();
+    healthCheckManager.startup(config.healthCheckInterval);
     return true;
   }
   
@@ -59,6 +66,11 @@ public class JCMApplication {
     logger.info("JCMP shutting down...");
     zkStorageEngine.close();
     healthCheckManager.shutdown();
+  }
+
+  // Injected by Spring
+  public void setConfig(JCMConfig config) {
+    this.config = config;
   }
 }
 

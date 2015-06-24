@@ -83,7 +83,9 @@ public class HttpChecker extends BaseChecker {
       @Override
       public Integer onCompleted(Response response) throws Exception {
         int code = response.getStatusCode();
-        logger.debug("http completed {} {}", node, code);
+        if (logger.isTraceEnabled()) {
+          logger.trace("http completed {} {}", node, code);
+        }
         setCheckResult(cluster.getName(), node.getSpec(), code == 200 ? 
             NodeStatus.NORMAL : NodeStatus.ABNORMAL);
         return code;
@@ -91,7 +93,9 @@ public class HttpChecker extends BaseChecker {
       
       @Override
       public void onThrowable(Throwable t) {
-        logger.debug("http error {} {}", node, t.getMessage());
+        if (logger.isTraceEnabled()) {
+          logger.trace("http error {} {}", node, t.getMessage());
+        }
         setCheckResult(cluster.getName(), node.getSpec(), NodeStatus.TIMEOUT);
       }
     });
