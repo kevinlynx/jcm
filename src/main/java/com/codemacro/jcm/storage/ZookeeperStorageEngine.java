@@ -57,6 +57,7 @@ public class ZookeeperStorageEngine implements Watcher {
   }
 
   public synchronized void close() throws InterruptedException {
+    this.watchers.clear();
     this.zk.close();
     logger.info("disconnect to zookeeper");
   }

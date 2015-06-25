@@ -61,6 +61,7 @@ public class TestClusterStorage {
     zkStorage.close();
     clusterManager.getAll().clear();
     zkStorage.init(ZKHOST, ROOT, 5000);
+    zkStorage.addWatcher(clusterStorage);
     zkStorage.open();
     assertEquals(1, clusterManager.getAll().size());
   }
