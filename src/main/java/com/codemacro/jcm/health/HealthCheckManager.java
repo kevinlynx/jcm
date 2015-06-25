@@ -18,6 +18,7 @@ package com.codemacro.jcm.health;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -69,6 +70,10 @@ public class HealthCheckManager implements CheckProvider {
         return cluster.getCheckType().equals(checkType);
       }
     });
+  }
+  
+  public Set<String> getCheckClusterList() {
+    return checkClusters.keySet();
   }
   
   public void onServerListChanged(int count, String selfSpec) {

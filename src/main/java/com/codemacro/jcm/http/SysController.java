@@ -15,40 +15,29 @@
  *******************************************************************************/
 package com.codemacro.jcm.http;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class Result {
-  public static final Result OK = new Result();
-  public static final Result FAILED = new Result(-1, "failed");
-  private int code;
-  private String msg;
-  private Object data;
+import com.codemacro.jcm.health.HealthCheckManager;
+import com.codemacro.jcm.storage.ServerStorage;
+
+@Controller
+@RequestMapping("/sys")
+public class SysController {
+  @Autowired
+  private HealthCheckManager healthCheckManager;
+  @Autowired
+  private ServerStorage serverStorage;
   
-  public Result(Object data) {
-    this();
-    this.data = data;
+  @RequestMapping(value = "/checklist")
+  public @ResponseBody Result getCheckList() {
+    return new Result(healthCheckManager.getCheckClusterList());
   }
 
-  public Result(int code, String msg) {
-    this.code = code;
-    this.msg = msg;
-  }
-  
-  public Result() {
-    this.code = 0;
-    this.msg = null;
-  }
-
-  public int getCode() {
-    return code;
-  }
-
-  public String getMsg() {
-    return msg;
-  }
-  
-  public Object getData() {
-    return data;
+  @RequestMapping(value = "/leader")
+  public @ResponseBody Result getLeader() {
+    return new Result(serverStorage.getLeaderSpec());
   }
 }

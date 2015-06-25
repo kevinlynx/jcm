@@ -27,7 +27,7 @@ public class ServerStorage extends ZookeeperPathWatcher {
   private static Logger logger = LoggerFactory.getLogger(ServerStorage.class);
   private static final String JCM_PREFIX = "jcm_server";
   private String serverSpec;
-  private String leaderSpec;
+  private volatile String leaderSpec;
   private HealthCheckManager healthCheckManager;
   private boolean registered = false;
 
@@ -51,11 +51,16 @@ public class ServerStorage extends ZookeeperPathWatcher {
       logger.error("elect leader faild {}", e);
       return null;
     }
-    return new String(spec);
+    leaderSpec = new String(spec);
+    return leaderSpec;
   }
   
   public boolean isLeader() {
     return leaderSpec.equals(serverSpec);
+  }
+  
+  public String getLeaderSpec() {
+    return leaderSpec;
   }
 
   @Override
@@ -66,9 +71,9 @@ public class ServerStorage extends ZookeeperPathWatcher {
     }
     String path = fullPath + "/" + JCM_PREFIX;
     try {
+      getChildren();
       path = zkStorage.getZooKeeper().create(path, serverSpec.getBytes(), Ids.OPEN_ACL_UNSAFE, 
         CreateMode.EPHEMERAL_SEQUENTIAL);
-      getChildren();
       logger.info("register server {} on zookeeper {} success", serverSpec, path);
     } catch (Exception e) {
       logger.error("register server on zookeeper failed {}", e);
@@ -88,6 +93,7 @@ public class ServerStorage extends ZookeeperPathWatcher {
   @Override
   void onListChanged() {
     logger.info("server list changed");
+    electLeader();
     if (healthCheckManager != null) {
       healthCheckManager.onServerListChanged(getChildren().size(), serverSpec);
     }

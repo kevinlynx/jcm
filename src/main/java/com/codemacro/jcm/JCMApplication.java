@@ -63,9 +63,9 @@ public class JCMApplication {
   }
   
   public void shutdown() throws InterruptedException {
-    logger.info("JCMP shutting down...");
-    zkStorageEngine.close();
+    logger.info("JCM shutting down...");
     healthCheckManager.shutdown();
+    zkStorageEngine.close();
   }
 
   // Injected by Spring

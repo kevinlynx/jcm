@@ -17,6 +17,8 @@ package com.codemacro.jcm.http;
 
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,15 +37,22 @@ import com.codemacro.jcm.storage.ClusterStorage;
 public class ClusterController {
   private static Logger logger = LoggerFactory.getLogger(ClusterController.class);
   @Autowired
+  private HttpServletRequest request;
+  @Autowired
   private ClusterStorage clusterStorage;
   @Autowired
   private ClusterManager clusterManager;
+  @Autowired
+  private RequestRedirector redirector;
   
   @RequestMapping(value = "/new")
   public @ResponseBody Result create(@RequestBody Cluster cluster) {
     logger.debug("create cluster {}", cluster);
     if (!cluster.isValid()) {
       return new Result(-1, "invalid cluster");
+    }
+    if (redirector.shouldRedirect()) {
+      return redirector.redirect(request.getRequestURI(), cluster);
     }
     boolean ret = clusterStorage.updateCluster(cluster);
     return ret ? Result.OK : Result.FAILED;
