@@ -28,6 +28,7 @@ import com.codemacro.jcm.model.Cluster;
 import com.codemacro.jcm.model.ClusterManager;
 import com.codemacro.jcm.model.Common.CheckType;
 import com.codemacro.jcm.model.Common.NodeStatus;
+import com.codemacro.jcm.model.Common.OnlineStatus;
 import com.codemacro.jcm.storage.StatusStorage;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
@@ -67,7 +68,8 @@ public class HealthCheckManager implements CheckProvider {
   public Map<String, Cluster> getCheckClusters(final CheckType checkType) {
     return Maps.filterValues(checkClusters, new Predicate<Cluster>() {
       public boolean apply(Cluster cluster) {
-        return cluster.getCheckType().equals(checkType);
+        return cluster.getOnline() == OnlineStatus.ONLINE &&
+            cluster.getCheckType().equals(checkType);
       }
     });
   }
@@ -82,6 +84,10 @@ public class HealthCheckManager implements CheckProvider {
   }
   
   public void onClusterListChanged() {
+    updateCheckedClusters();
+  }
+  
+  public void onClusterChanged() {
     updateCheckedClusters();
   }
 

@@ -16,6 +16,7 @@
 package com.codemacro.jcm.model;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.codemacro.jcm.model.Common.CheckType;
@@ -32,7 +33,7 @@ import com.google.common.collect.Maps;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Cluster {
   private String name;
-  private OnlineStatus online = OnlineStatus.INITING;
+  private OnlineStatus online = OnlineStatus.OFFLINE;
   private Set<Node> nodes;
   private String checkFile;
   private CheckType checkType = CheckType.NONE;
@@ -99,6 +100,7 @@ public class Cluster {
       Node n = getNode(spec);
       if (n != null) {
         n.setOnline(status);
+        n.updateLastCheck();
       }
     }
   }
@@ -116,6 +118,7 @@ public class Cluster {
       Node n = mNodes.get(entry.getKey());
       if (n != null) {
         n.setStatus((NodeStatus) entry.getValue());
+        n.updateLastCheck();
       }
     }
   }
@@ -142,11 +145,15 @@ public class Cluster {
   }
   
   private Node getNode(final String spec) {
-    return Iterables.find(nodes, new Predicate<Node>() {
-      public boolean apply(Node node) {
-        return spec.equals(node.getSpec());
-      }
-    });
+    try {
+      return Iterables.find(nodes, new Predicate<Node>() {
+        public boolean apply(Node node) {
+          return node.isMatch(spec);
+        }
+      });
+    } catch (NoSuchElementException e) {
+      return null;
+    }
   }
 
   @JsonIgnore

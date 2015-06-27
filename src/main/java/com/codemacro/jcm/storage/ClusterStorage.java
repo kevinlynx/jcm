@@ -63,6 +63,15 @@ public class ClusterStorage extends ZookeeperPathWatcher {
   }
 
   @Override
+  void onChildData(String childName) {
+    logger.info("cluster {} changed", childName);
+    loadCluster(childName);
+    if (healthCheckManager != null) {
+      healthCheckManager.onClusterListChanged();
+    }
+  }
+
+  @Override
   void onConnected() { // first connected or reconnected
     touch(fullPath);
     loadClusters();
@@ -77,12 +86,7 @@ public class ClusterStorage extends ZookeeperPathWatcher {
       return false;
     }
     String path = fullPath + "/" + cluster.getName();
-    if (writeData(path, data.getBytes())) {
-      // it does not matter to receive watch event later
-      clusterManager.update(cluster);
-      return true;
-    }
-    return false;
+    return writeData(path, data.getBytes());
   }
   
   public boolean removeCluster(String name) {
@@ -113,7 +117,6 @@ public class ClusterStorage extends ZookeeperPathWatcher {
       try {
         Cluster cluster = JsonUtil.fromString(json, Cluster.class);
         clusterManager.update(cluster);
-        logger.debug("add cluster [{}]", cluster.getName());
       } catch (IOException e) {
         logger.warn("decode cluster failed [{}] {}", name, e);
       }

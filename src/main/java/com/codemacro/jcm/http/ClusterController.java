@@ -15,6 +15,7 @@
  *******************************************************************************/
 package com.codemacro.jcm.http;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,10 +27,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.codemacro.jcm.model.Cluster;
 import com.codemacro.jcm.model.ClusterManager;
+import com.codemacro.jcm.model.Common.NodeStatus;
+import com.codemacro.jcm.model.Common.OnlineStatus;
+import com.codemacro.jcm.model.Node;
 import com.codemacro.jcm.storage.ClusterStorage;
 
 @Controller
@@ -45,11 +50,11 @@ public class ClusterController {
   @Autowired
   private RequestRedirector redirector;
   
-  @RequestMapping(value = "/new")
+  @RequestMapping(value = "", method = RequestMethod.POST)
   public @ResponseBody Result create(@RequestBody Cluster cluster) {
     logger.debug("create cluster {}", cluster);
     if (!cluster.isValid()) {
-      return new Result(-1, "invalid cluster");
+      return Result.INVALID_ARG;
     }
     if (redirector.shouldRedirect()) {
       return redirector.redirect(request.getRequestURI(), cluster);
@@ -58,25 +63,105 @@ public class ClusterController {
     return ret ? Result.OK : Result.FAILED;
   }
   
-  @RequestMapping(value = "/del/{name}")
+  @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   public @ResponseBody Result delete(@PathVariable String name) {
     logger.debug("delete cluster {}", name);
+    if (!clusterManager.exists(name)) {
+      return Result.NOT_FOUND;
+    }
     boolean ret = clusterStorage.removeCluster(name);
     return ret ? Result.OK : Result.FAILED;
   }
   
-  @RequestMapping(value = "/get/{name}")
+  @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   public @ResponseBody Result get(@PathVariable String name) {
     Cluster c = clusterManager.find(name);
     if (c == null) {
-      return new Result(-1, "not found");
+      return Result.NOT_FOUND;
     }
     return new Result(c);
   }
 
-  @RequestMapping(value = "/list")
+  @RequestMapping(value = "", method = RequestMethod.GET)
   public @ResponseBody Result list() {
     Map<String, Cluster> all = clusterManager.getAll();
     return new Result(all.values());
+  }
+  
+  @RequestMapping(value = "/online/{name}", method = RequestMethod.POST)
+  public @ResponseBody Result online(@PathVariable String name, @RequestBody boolean online) {
+    Cluster c = clusterManager.find(name);
+    if (c == null) {
+      return Result.NOT_FOUND;
+    }
+    if (redirector.shouldRedirect()) {
+      return redirector.redirect(request.getRequestURI(), online);
+    }
+    c.setOnline(online ? OnlineStatus.ONLINE : OnlineStatus.OFFLINE);
+    return clusterStorage.updateCluster(c) ? Result.OK : Result.FAILED;
+  }
+  
+  @RequestMapping(value = "/node/{name}", method = RequestMethod.POST)
+  public @ResponseBody Result addNodes(@PathVariable String name, 
+      @RequestBody List<Node> nodes) {
+    if (nodes.size() == 0) {
+      return Result.INVALID_ARG;
+    }
+    Cluster c = clusterManager.find(name);
+    if (c == null) {
+      return Result.NOT_FOUND;
+    }
+    if (redirector.shouldRedirect()) {
+      return redirector.redirect(request.getRequestURI(), nodes);
+    }
+    for (Node n : nodes) {
+      c.addNode(n);
+    }
+    return clusterStorage.updateCluster(c) ? Result.OK : Result.FAILED;
+  }
+
+  @RequestMapping(value = "/node/{name}", method = RequestMethod.DELETE)
+  public @ResponseBody Result delNodes(@PathVariable String name, 
+      @RequestBody List<String> nodes) {
+    if (nodes.size() == 0) {
+      return Result.INVALID_ARG;
+    }
+    Cluster c = clusterManager.find(name);
+    if (c == null) {
+      return Result.NOT_FOUND;
+    }
+    if (redirector.shouldRedirect()) {
+      return redirector.redirect(request.getRequestURI(), nodes);
+    }
+    for (String n : nodes) {
+      c.removeNode(n);
+    }
+    return clusterStorage.updateCluster(c) ? Result.OK : Result.FAILED;
+  }
+
+  public static class SetNodeOnlineArg {
+    public String spec;
+    public boolean online;
+  }
+
+  @RequestMapping(value = "/node/online/{name}", method = RequestMethod.POST)
+  public @ResponseBody Result onlineNode(@PathVariable String name, 
+      @RequestBody SetNodeOnlineArg arg) {
+    Cluster c = clusterManager.find(name);
+    if (c == null) {
+      return Result.NOT_FOUND;
+    }
+    if (redirector.shouldRedirect()) {
+      return redirector.redirect(request.getRequestURI(), arg);
+    }
+    Node n = c.findNode(arg.spec);
+    if (n == null) {
+      return Result.NOT_FOUND;
+    }
+    n.setOnline(arg.online ? OnlineStatus.ONLINE : OnlineStatus.OFFLINE);
+    if (!arg.online) {
+      n.setStatus(NodeStatus.INVALID);
+    }
+    return clusterStorage.updateCluster(c) ? Result.OK : Result.FAILED;
   }
 }

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.codemacro.jcm.model.Cluster;
 import com.codemacro.jcm.model.Common.CheckType;
 import com.codemacro.jcm.model.Common.NodeStatus;
+import com.codemacro.jcm.model.Common.OnlineStatus;
 import com.codemacro.jcm.model.Common.ProtoType;
 import com.codemacro.jcm.model.Node;
 import com.ning.http.client.AsyncCompletionHandler;
@@ -72,7 +73,9 @@ public class HttpChecker extends BaseChecker {
 
   private void checkCluster(Cluster cluster) {
     for (Node n : cluster.getNodes()) {
-      checkNode(cluster, n);
+      if (n.getOnline() == OnlineStatus.ONLINE) {
+        checkNode(cluster, n);
+      }
     }
   }
   

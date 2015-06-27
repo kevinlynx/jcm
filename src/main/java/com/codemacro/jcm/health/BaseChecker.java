@@ -21,6 +21,7 @@ import java.util.Map;
 import com.codemacro.jcm.model.Cluster;
 import com.codemacro.jcm.model.Common.CheckType;
 import com.codemacro.jcm.model.Common.NodeStatus;
+import com.codemacro.jcm.model.Common.OnlineStatus;
 import com.codemacro.jcm.model.Node;
 
 public abstract class BaseChecker extends Thread {
@@ -86,7 +87,9 @@ public abstract class BaseChecker extends Thread {
     for (Cluster c : clusters.values()) {
       Map<String, NodeStatus> statusList = new HashMap<String, NodeStatus>();
       for (Node n : c.getNodes()) {
-        statusList.put(n.getSpec(), NodeStatus.TIMEOUT);
+        if (n.getOnline() == OnlineStatus.ONLINE) {
+          statusList.put(n.getSpec(), NodeStatus.TIMEOUT);
+        }
       }
       clusterStatusList.put(c.getName(), statusList);
     }

@@ -80,7 +80,8 @@ public class Node {
   private Set<ServiceProto> protos;
   private String udata;
   private NodeStatus status = NodeStatus.INVALID;
-  private OnlineStatus online = OnlineStatus.ONLINE;
+  private OnlineStatus online = OnlineStatus.OFFLINE;
+  private long lastCheck;
 
   public Node() {
   }
@@ -135,6 +136,11 @@ public class Node {
     return null;
   }
 
+  @JsonIgnore
+  public boolean isMatch(String spec) {
+    return spec.toUpperCase().equals(getSpec());
+  }
+  
   public String getUdata() {
     return udata;
   }
@@ -157,6 +163,14 @@ public class Node {
 
   public void setOnline(OnlineStatus online) {
     this.online = online;
+  }
+
+  public long getLastCheck() {
+    return lastCheck;
+  }
+
+  public void updateLastCheck() {
+    this.lastCheck = System.currentTimeMillis();
   }
 
   @Override

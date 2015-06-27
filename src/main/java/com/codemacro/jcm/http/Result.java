@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class Result {
   public static final Result OK = new Result();
   public static final Result FAILED = new Result(-1, "failed");
+  public static final Result NOT_FOUND = new Result(-1, "not found");
+  public static final Result INVALID_ARG = new Result(-1, "invalid argument");
   private int code;
   private String msg;
   private Object data;

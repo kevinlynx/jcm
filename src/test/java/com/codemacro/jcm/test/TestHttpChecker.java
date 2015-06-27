@@ -27,6 +27,7 @@ import com.codemacro.jcm.health.HttpChecker;
 import com.codemacro.jcm.model.Cluster;
 import com.codemacro.jcm.model.Common.CheckType;
 import com.codemacro.jcm.model.Common.NodeStatus;
+import com.codemacro.jcm.model.Common.OnlineStatus;
 import com.codemacro.jcm.model.Node;
 import com.google.common.collect.ImmutableSet;
 
@@ -42,6 +43,9 @@ public class TestHttpChecker extends TestCase implements CheckProvider {
   
   @Override
   public void setUp() {
+    n1.setOnline(OnlineStatus.ONLINE);
+    n2.setOnline(OnlineStatus.ONLINE);
+    n3.setOnline(OnlineStatus.ONLINE);
     Cluster c1 = new Cluster("http", ImmutableSet.of(n1, n3));
     Cluster c2 = new Cluster("http2", ImmutableSet.of(n2));
     clusters.put(c1.getName(), c1);
