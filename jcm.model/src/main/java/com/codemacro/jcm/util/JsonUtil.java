@@ -30,6 +30,7 @@ public class JsonUtil {
     try {
       json = mapper.writeValueAsString(obj);
     } catch (IOException e) {
+      e.printStackTrace();
     }
     return json;
   }

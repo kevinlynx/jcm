@@ -13,43 +13,24 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  *******************************************************************************/
-package com.codemacro.jcm.model;
+package com.codemacro.jcm.sub;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.codemacro.jcm.model.Common;
 
-public final class Common {
-  public static final Map<ProtoType, String> PROTO_STR = new 
-      HashMap<ProtoType, String>();
-
-  static {
-    PROTO_STR.put(ProtoType.HTTP, "HTTP");
-    PROTO_STR.put(ProtoType.TCP, "TCP");
-  }
-
-  public static ProtoType getProtoType(String str) {
-    str = str.toUpperCase();
-    for (Map.Entry<ProtoType, String> entry : PROTO_STR.entrySet()) {
-      if (entry.getValue().equals(str)) {
-        return entry.getKey();
-      }
+public interface NodeAllocator extends Subscriber.Listener {
+  class Host {
+    public String ip;
+    public int port;
+    public Host(String ip, int port) {
+      this.ip = ip;
+      this.port = port;
     }
-    return null;
-  }
 
-  public enum ProtoType {
-    ANY, HTTP, TCP
-  };
-  
-  public enum OnlineStatus {
-    INITING, ONLINE, OFFLINE
-  };
-
-  public enum NodeStatus {
-    INVALID, NORMAL, ABNORMAL, TIMEOUT
-  };
-  
-  public enum CheckType {
-    NONE, HTTP, TCP
+    @Override
+    public String toString() {
+      return "[" + ip + ":" + port + "]";
+    }
   }
+  
+  Host alloc(String name, Common.ProtoType proto);
 }

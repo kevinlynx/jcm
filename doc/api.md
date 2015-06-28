@@ -53,4 +53,10 @@
 
 `/sys/checklist` `GET`
 
+## subscribe
 
+`/sub` `POST`
+
+    {"tag":"v0.1.0", "units":[{"name":"hello9", "version":0}]}
+
+    

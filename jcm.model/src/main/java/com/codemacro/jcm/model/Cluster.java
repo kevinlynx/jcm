@@ -15,6 +15,8 @@
  *******************************************************************************/
 package com.codemacro.jcm.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -37,6 +39,7 @@ public class Cluster {
   private Set<Node> nodes;
   private String checkFile;
   private CheckType checkType = CheckType.NONE;
+  private long version;
 
   public Cluster() { // default constructor for json
   }
@@ -82,8 +85,29 @@ public class Cluster {
     return checkType;
   }
 
+  public long getVersion() {
+    return version;
+  }
+
+  public void setVersion(long version) {
+    this.version = version;
+  }
+
   public void setCheckType(CheckType checkType) {
     this.checkType = checkType;
+  }
+
+  @JsonIgnore
+  public List<String> getInvalidNodes() {
+    List<String> list = new ArrayList<String>();
+    synchronized (nodes) {
+      for (Node n : nodes) {
+        if (n.getOnline() != OnlineStatus.ONLINE || n.getStatus() != NodeStatus.NORMAL) {
+          list.add(n.getSpec());
+        }
+      }
+    }
+    return list;
   }
 
   public void setNodeStatus(String spec, NodeStatus status) {

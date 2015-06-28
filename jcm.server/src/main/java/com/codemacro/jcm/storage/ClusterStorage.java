@@ -81,6 +81,7 @@ public class ClusterStorage extends ZookeeperPathWatcher {
   }
   
   public boolean updateCluster(Cluster cluster) {
+    cluster.setVersion(System.currentTimeMillis());
     String data = JsonUtil.toString(cluster);
     if (data.isEmpty()) {
       return false;
