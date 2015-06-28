@@ -34,11 +34,11 @@ public class RRAllocator implements NodeAllocator {
     this.clusterPosList = new ConcurrentHashMap<String, Integer>();
   }
 
-  public void onClusterUpdate(Cluster cluster) {
+  public synchronized void onClusterUpdate(Cluster cluster) {
     clusterPosList.put(cluster.getName(), 0);
   }
 
-  public void onClusterRemove(String name) {
+  public synchronized void onClusterRemove(String name) {
     clusterPosList.remove(name);
   }
 
@@ -48,7 +48,11 @@ public class RRAllocator implements NodeAllocator {
       return null;
     }
     int pos = this.clusterPosList.get(name);
-    Node[] nodes = new Node[cluster.getNodes().size()];
+    int ncnt = cluster.getNodes().size();
+    if (ncnt == 0) {
+      return null;
+    }
+    Node[] nodes = new Node[ncnt];
     cluster.getNodes().toArray(nodes);
     Node foundNode = null;
     int foundPort = 0;
@@ -67,6 +71,9 @@ public class RRAllocator implements NodeAllocator {
       }
     }
     this.clusterPosList.put(name, pos);
+    if (foundNode == null) {
+      return null;
+    }
     return new Host(foundNode.getIp(), foundPort);
   }
 

@@ -16,7 +16,6 @@
 package com.codemacro.jcm.sub;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,24 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codemacro.jcm.model.Cluster;
-import com.codemacro.jcm.model.ClusterManager;
-import com.codemacro.jcm.model.Common.NodeStatus;
 import com.codemacro.jcm.model.SubscribeDef.Request;
 import com.codemacro.jcm.model.SubscribeDef.RequestUnit;
 import com.codemacro.jcm.model.SubscribeDef.Response;
 import com.codemacro.jcm.model.SubscribeDef.ResponseUnit;
 
-public class Subscriber extends Thread {
-  public interface Listener {
-    void onInit(ClusterManager clusterManager);
-    void onClusterUpdate(Cluster cluster);
-    void onClusterRemove(String name);
-  }
-  
+public class Subscriber extends SubscriberBase implements Runnable {
   private static Logger logger = LoggerFactory.getLogger(Subscriber.class);
   private static final String TAG = "java client v0.1.0";
-  private ClusterManager clusterManager = new ClusterManager();
-  private List<Listener> listeners = new LinkedList<Listener>();
+  private Thread thread;
   private Map<String, RequestUnit> requests = new HashMap<String, RequestUnit>();
   private JCMServerClient client;
   private volatile boolean stop = false;
@@ -60,32 +50,26 @@ public class Subscriber extends Thread {
     client = new JCMServerClient(hosts);
   }
 
-  public void addListener(Listener listener) {
-    this.listeners.add(listener);
-  }
-
   public boolean startup() {
     stop = false;
     logger.info("subscriber starts");
-    for (Listener listener : this.listeners) {
-      listener.onInit(clusterManager);
-    }
+    init();
     boolean ret = doSubscribe();
-    super.start();
+    this.thread = new Thread(this);
+    this.thread.start();
     return ret;
   }
   
   public void shutdown() {
     stop = true;
     try {
-      this.join();
+      this.thread.join();
     } catch (InterruptedException e) {
     }
     this.client.close();
     logger.info("subscriber shutdown");
   }
 
-  @Override
   public void run() {
     logger.debug("subscriber thread starts");
     while (!stop) {
@@ -112,48 +96,17 @@ public class Subscriber extends Thread {
     return true;
   }
   
-  private void procResp(ResponseUnit unit) {
-    switch (unit.kind) {
-    case RESP_REMOVE:
-      removeCluster(unit.name);
-      break;
-    case RESP_UPDATE:
-      updateCluster(unit.cluster);
-      break;
-    case RESP_STATUS:
-      updateStatus(unit.name, unit.invalids);
-      break;
-    }
-  }
-  
-  private void removeCluster(String name) {
-    logger.debug("receive remove cluster: {}", name);
+  @Override
+  protected void removeCluster(String name) {
+    super.removeCluster(name);
     this.requests.remove(name);
-    this.clusterManager.remove(name);
-    for (Listener listener : this.listeners) {
-      listener.onClusterRemove(name);
-    }
   }
 
-  private void updateCluster(Cluster cluster) {
-    logger.debug("receive update cluster: {}", cluster.getName());
-    this.clusterManager.update(cluster);
+  @Override
+  protected void updateCluster(Cluster cluster) {
+    super.updateCluster(cluster);
     RequestUnit unit = this.requests.get(cluster.getName());
     unit.version = cluster.getVersion();
-    for (Listener listener : this.listeners) {
-      listener.onClusterUpdate(cluster);
-    }
   }
 
-  private void updateStatus(String name, List<String> invalids) {
-    logger.debug("receive update status: {}", name);
-    Cluster cluster = clusterManager.find(name);
-    if (cluster == null) {
-      logger.warn("not found cluster: {}", name);
-      return ;
-    } 
-    for (String spec : invalids) {
-      cluster.setNodeStatus(spec, NodeStatus.INVALID);
-    }
-  } 
 }

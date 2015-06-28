@@ -16,6 +16,7 @@
 package com.codemacro.jcm.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -63,6 +64,29 @@ public class SubscribeDef {
     public RespType kind;
     public Cluster cluster;
     public List<String> invalids; // invalid node specs
+    
+    public static ResponseUnit create(Cluster cluster) {
+      ResponseUnit resp = new ResponseUnit();
+      resp.cluster = cluster;
+      resp.kind = RespType.RESP_UPDATE;
+      resp.name = cluster.getName();
+      return resp;
+    }
+
+    public static ResponseUnit create(String name) {
+      ResponseUnit resp = new ResponseUnit();
+      resp.name = name;
+      resp.kind = RespType.RESP_REMOVE;
+      return resp;
+    }
+
+    public static ResponseUnit create(String name, String...specs) {
+      ResponseUnit resp = new ResponseUnit();
+      resp.name = name;
+      resp.invalids = Arrays.asList(specs);
+      resp.kind = RespType.RESP_STATUS;
+      return resp;
+    }
   }
 
   public static class Response {

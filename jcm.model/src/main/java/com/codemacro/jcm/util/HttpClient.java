@@ -46,6 +46,14 @@ public class HttpClient {
     return resp;  
   }
   
+  public static String simpleDelete(String url) {
+    AsyncHttpClient asyncHttpClient = createClient();
+    Future<Response> f = asyncHttpClient.prepareDelete(url).execute();
+    String resp = getRespString(f);
+    asyncHttpClient.close();
+    return resp;
+  }
+
   private static String getRespString(Future<Response> f) {
     String resp = null;
     try {
