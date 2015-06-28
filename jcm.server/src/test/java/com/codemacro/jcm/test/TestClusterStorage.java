@@ -57,6 +57,7 @@ public class TestClusterStorage {
     zkStorage.open();
     assertEquals(0, clusterManager.getAll().size());
     clusterStorage.updateCluster(createCluster());
+    Thread.sleep(100);
     assertEquals(1, clusterManager.getAll().size());
     zkStorage.close();
     clusterManager.getAll().clear();
@@ -72,6 +73,7 @@ public class TestClusterStorage {
     zkStorage.addWatcher(clusterStorage);
     zkStorage.open();
     clusterStorage.updateCluster(createCluster());
+    Thread.sleep(100);
     assertEquals(1, clusterManager.getAll().size());
     
     ClusterManager cMgr2 = new ClusterManager();
