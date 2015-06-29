@@ -46,8 +46,8 @@ public class StatusStorage extends ZookeeperPathWatcher {
     if (logger.isTraceEnabled()) {
       logger.trace("flush node status to cluster [{}]", clusterName);
     }
-    // update local status from zookeeper
-    writeData(path, data.getBytes());
+    // only write to zookeeper, local status will be updated from zookeeper
+    writeData(path, data.getBytes(), false);
   }
   
   @Override

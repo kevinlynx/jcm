@@ -78,8 +78,9 @@ public class HealthCheckManager implements CheckProvider {
     return checkClusters.keySet();
   }
   
-  public void onServerListChanged(int count, String selfSpec) {
-    locator.serversChanged(selfSpec, count);
+  // on several servers startup, the list changed quickly, but it does not matter
+  public void onServerListChanged(List<String> ids, String selfId) {
+    locator.serversChanged(selfId, ids);
     updateCheckedClusters();
   }
   

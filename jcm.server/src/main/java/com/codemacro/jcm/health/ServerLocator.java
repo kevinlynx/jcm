@@ -15,23 +15,38 @@
  *******************************************************************************/
 package com.codemacro.jcm.health;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import com.codemacro.jcm.storage.ServerStorage;
 import com.codemacro.jcm.util.Hash;
 
 public class ServerLocator {
-  private String serverSpec;
-  private long serverHash;
-  private int serverId = 0;
-  private int bucketCnt = 0;
+  private List<String> serverList;
+  private String selfId;
   
-  public void serversChanged(String spec, int total) {
-    serverSpec = spec;
-    bucketCnt = total;
-    serverHash = Hash.murhash(serverSpec);
-    serverId = Hash.consistentHash(serverHash, total);
+  public void serversChanged(String selfId, List<String> ids) {
+    this.selfId = selfId;
+    this.serverList = ids;
+    Collections.sort(this.serverList, new Comparator<String>() {
+      public int compare(String arg0, String arg1) {
+        return parseId(arg0).compareTo(parseId(arg1));
+      }
+    });
   }
   
   public boolean isResponsible(String clusterName) {
+    if (serverList == null) {
+      return false;
+    }
     long hash = Hash.murhash(clusterName);
-    return serverId == Hash.consistentHash(hash, bucketCnt);
+    int id = Hash.consistentHash(hash, serverList.size());
+    String sid = serverList.get(id);
+    return sid.equals(selfId);
+  }
+  
+  private Integer parseId(String str) {
+    return Integer.parseInt(str.substring(ServerStorage.JCM_PREFIX.length()));
   }
 }

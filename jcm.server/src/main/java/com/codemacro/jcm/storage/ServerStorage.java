@@ -25,8 +25,9 @@ import com.codemacro.jcm.util.ZookeeperLeaderElector;
 
 public class ServerStorage extends ZookeeperPathWatcher {
   private static Logger logger = LoggerFactory.getLogger(ServerStorage.class);
-  private static final String JCM_PREFIX = "jcm_server";
+  public static final String JCM_PREFIX = "jcm_server";
   private String serverSpec;
+  private String serverId;
   private volatile String leaderSpec;
   private HealthCheckManager healthCheckManager;
   private boolean registered = false;
@@ -75,6 +76,7 @@ public class ServerStorage extends ZookeeperPathWatcher {
       path = zkStorage.getZooKeeper().create(path, serverSpec.getBytes(), Ids.OPEN_ACL_UNSAFE, 
         CreateMode.EPHEMERAL_SEQUENTIAL);
       logger.info("register server {} on zookeeper {} success", serverSpec, path);
+      this.serverId = path.substring(path.lastIndexOf('/') + 1);
     } catch (Exception e) {
       logger.error("register server on zookeeper failed {}", e);
     }
@@ -95,7 +97,7 @@ public class ServerStorage extends ZookeeperPathWatcher {
     logger.info("server list changed");
     electLeader();
     if (healthCheckManager != null) {
-      healthCheckManager.onServerListChanged(getChildren().size(), serverSpec);
+      healthCheckManager.onServerListChanged(getChildren(), serverId);
     }
   }
 }

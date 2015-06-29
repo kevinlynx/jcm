@@ -41,10 +41,15 @@ public abstract class ZookeeperPathWatcher {
   }
 
   protected boolean writeData(String path, byte[] data) {
+    return writeData(path, data, true);
+  }
+
+  protected boolean writeData(String path, byte[] data, boolean persistent) {
     ZooKeeper zk = zkStorage.getZooKeeper();
     try {
       if (null == zk.exists(path, false)) {
-        zk.create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        zk.create(path, data, Ids.OPEN_ACL_UNSAFE, persistent ? CreateMode.PERSISTENT :
+          CreateMode.EPHEMERAL);
       } else {
         zk.setData(path, data, -1);
       }

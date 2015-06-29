@@ -83,9 +83,15 @@ public class ClusterController {
   }
 
   @RequestMapping(value = "", method = RequestMethod.GET)
-  public @ResponseBody Result list() {
+  public @ResponseBody Result getAll() {
     Map<String, Cluster> all = clusterManager.getAll();
     return new Result(all.values());
+  }
+
+  @RequestMapping(value = "/list", method = RequestMethod.GET)
+  public @ResponseBody Result list() {
+    Map<String, Cluster> all = clusterManager.getAll();
+    return new Result(all.keySet());
   }
   
   @RequestMapping(value = "/online/{name}", method = RequestMethod.POST)
