@@ -45,13 +45,15 @@
 
 ## sys
 
-### leader
+### status
 
-`/sys/leader `GET`
+`/sys/status `GET`
 
-### check list
+### enable/disable node status cache
 
-`/sys/checklist` `GET`
+`/sys/nscache` `POST`
+
+    true
 
 ## subscribe
 

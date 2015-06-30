@@ -103,6 +103,7 @@ public class HealthCheckManager implements CheckProvider {
         checkClusters.put(cluster.getName(), cluster);
       }
     }
+    this.statusStorage.removeInvalidCache(checkClusters.keySet());
     logger.info("update checked cluster list {}", checkClusters.size());
   }
 }

@@ -17,11 +17,13 @@ package com.codemacro.jcm.http;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.codemacro.jcm.health.HealthCheckManager;
 import com.codemacro.jcm.storage.ServerStorage;
+import com.codemacro.jcm.storage.StatusStorage;
 
 @Controller
 @RequestMapping("/sys")
@@ -30,14 +32,21 @@ public class SysController {
   private HealthCheckManager healthCheckManager;
   @Autowired
   private ServerStorage serverStorage;
-  
-  @RequestMapping(value = "/checklist")
-  public @ResponseBody Result getCheckList() {
-    return new Result(healthCheckManager.getCheckClusterList());
+  @Autowired
+  private StatusStorage statusStorage;
+
+  @RequestMapping(value = "/status")
+  public @ResponseBody Result getStatus() {
+    SysStatus status = new SysStatus();
+    status.checkClusters = healthCheckManager.getCheckClusterList();
+    status.leader = serverStorage.getLeaderSpec();
+    status.statusCache = statusStorage.isEnableCache();
+    return new Result(status);
   }
 
-  @RequestMapping(value = "/leader")
-  public @ResponseBody Result getLeader() {
-    return new Result(serverStorage.getLeaderSpec());
+  @RequestMapping(value = "/nscache")
+  public @ResponseBody Result enableStatusCache(@RequestBody boolean enable) {
+    statusStorage.setEnableCache(enable);
+    return Result.OK;
   }
 }
