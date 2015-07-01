@@ -40,7 +40,8 @@ public class StatusStorage extends ZookeeperPathWatcher {
   private Set<String> clusterNames;
   private Map<String, String> statusCache;
   private volatile boolean enableCache = true;
-
+  private ClusterWatchStat watchStat = new ClusterWatchStat("NodeStatus");
+  
   public StatusStorage(ClusterManager clusterManager) {
     this.clusterManager = clusterManager;
     this.statusCache = new ConcurrentHashMap<String, String>();
@@ -61,6 +62,7 @@ public class StatusStorage extends ZookeeperPathWatcher {
         logger.warn("compress [{}] status failed {}", clusterName, e);
         return ;
       }
+      watchStat.begin(clusterName);
       writeData(path, compress, false);
     }
   }
@@ -100,6 +102,7 @@ public class StatusStorage extends ZookeeperPathWatcher {
   @Override
   void onChildData(String childName) {
     loadNodesStatus(childName);
+    watchStat.end(childName);
   }
   
   // use Map to represent node stauts, a simple but safe implementation

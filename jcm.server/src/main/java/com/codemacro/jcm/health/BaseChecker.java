@@ -18,6 +18,9 @@ package com.codemacro.jcm.health;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.codemacro.jcm.model.Cluster;
 import com.codemacro.jcm.model.Common.CheckType;
 import com.codemacro.jcm.model.Common.NodeStatus;
@@ -25,11 +28,17 @@ import com.codemacro.jcm.model.Common.OnlineStatus;
 import com.codemacro.jcm.model.Node;
 
 public abstract class BaseChecker extends Thread {
+  private static Logger logger = LoggerFactory.getLogger(BaseChecker.class);
+  private static final int STAT_INTERVAL = Integer.parseInt(
+      System.getProperty("jcm.stat.checker", "300"));
   private volatile boolean done = false;
   protected int interval = 0; // milliseconds
   protected CheckProvider provider;
   private Map<String, Map<String, NodeStatus>> clusterStatusList;
   private CheckType checkType;
+  private long statChkTotalCost = 0;
+  private long statFlushTotalCost = 0;
+  private int statCount = 0;
   
   public BaseChecker() {
   }
@@ -72,14 +81,29 @@ public abstract class BaseChecker extends Thread {
       startCheck(clusters);
       runOnce(clusters);
     }
-    long left = interval - (System.currentTimeMillis() - startAt);
+    long cost = System.currentTimeMillis() - startAt;
+    statChkTotalCost += cost;
+    long left = interval - cost;
     if (left > 0) {
       try {
         Thread.sleep(left);
       } catch (InterruptedException e) {
       }
-    }
+    } 
+    startAt = System.currentTimeMillis();
     flushAllCheckResults();
+    long flushCost = System.currentTimeMillis() - startAt;
+    statFlushTotalCost += flushCost;
+    if (flushCost + cost > interval) {
+      logger.warn("checker {} is slow {}(ms) > {}(ms)", toString(), flushCost + cost, interval);
+    }
+    if (++statCount >= STAT_INTERVAL) {
+      logger.info("checker {} stat count {} avg check cost(ms) {}, avg flush cost(ms) {}", 
+          toString(), statCount, statChkTotalCost * 1.0 / statCount, statFlushTotalCost * 1.0 / statCount);
+      statFlushTotalCost = 0;
+      statChkTotalCost = 0;
+      statCount = 0;
+    }
   }
   
   protected void startCheck(Map<String, Cluster> clusters) {

@@ -115,6 +115,7 @@ public class Cluster {
       Node n = getNode(spec);
       if (n != null) {
         n.setStatus(status);
+        n.updateLastCheck();
       }
     }
   }
@@ -124,7 +125,6 @@ public class Cluster {
       Node n = getNode(spec);
       if (n != null) {
         n.setOnline(status);
-        n.updateLastCheck();
       }
     }
   }

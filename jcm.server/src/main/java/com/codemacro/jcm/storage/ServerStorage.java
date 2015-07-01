@@ -83,7 +83,7 @@ public class ServerStorage extends ZookeeperPathWatcher {
   }
 
   @Override
-  void onSessionExpired() { 
+  void onSessionExpired() { // TODO: session expired, but server node exists ?
     registered = false;
   }
 

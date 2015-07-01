@@ -11,4 +11,5 @@ first version
 * http api
     * cluster CRUD
     * sys info
-
+* stat
+    * zookeeper watch RT stat

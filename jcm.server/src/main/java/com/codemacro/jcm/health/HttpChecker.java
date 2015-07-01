@@ -55,6 +55,11 @@ public class HttpChecker extends BaseChecker {
     }
   }
   
+  @Override
+  public String toString() {
+    return "HttpChecker";
+  }
+
   private void createHttp() {
     int timeout = this.interval / 10 * 8;
     if (timeout == 0) {
@@ -65,7 +70,12 @@ public class HttpChecker extends BaseChecker {
     // right now, we just set these nodes timeout
     AsyncHttpClientConfig config = new AsyncHttpClientConfig.Builder()
         .setConnectTimeout(timeout / 2)
-        .setMaxRequestRetry(1)
+        .setMaxRequestRetry(0)
+        .setFollowRedirect(false)
+        .setMaxConnections(-1)
+        .setMaxConnectionsPerHost(-1)
+        .setAllowPoolingConnections(true)
+        .setIOThreadMultiplier(1)
         .setRequestTimeout(timeout).build();
     this.http = new AsyncHttpClient(config);
     logger.info("initialize http client with timeout {}", timeout);

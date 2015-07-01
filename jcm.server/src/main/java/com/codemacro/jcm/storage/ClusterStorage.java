@@ -93,7 +93,6 @@ public class ClusterStorage extends ZookeeperPathWatcher {
   public boolean removeCluster(String name) {
     try {
       zkStorage.getZooKeeper().delete(fullPath + "/" + name, -1);
-      clusterManager.remove(name);
       return true;
     } catch (Exception e) {
       logger.warn("remove cluster failed [{}]", name);
