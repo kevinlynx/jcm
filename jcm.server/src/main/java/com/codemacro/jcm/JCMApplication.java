@@ -52,7 +52,7 @@ public class JCMApplication {
     logger.info("config [zookeeper.timeout={}]", config.zkTimeout);
     logger.info("config [server.port={}]", config.getServerPort());
     logger.info("config [server.address={}]", config.getServerAddr());
-    serverStorage.init(config.getServerAddr(), config.getServerPort(), 0);
+    serverStorage.init(config.getServerAddr(), config.getServerPort());
     zkStorageEngine.init(config.zkHost, config.zkRoot, config.zkTimeout);
     zkStorageEngine.addWatcher(serverStorage);
     zkStorageEngine.addWatcher(clusterStorage);

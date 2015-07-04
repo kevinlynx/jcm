@@ -13,3 +13,5 @@ first version
     * sys info
 * stat
     * zookeeper watch RT stat
+    * health checking stat
+

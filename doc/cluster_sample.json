@@ -1,0 +1,5 @@
+{"name":"cluster0","online":"ONLINE","nodes":[
+{"ip":"10.181.97.120","protos":[{"port":20009,"proto":"HTTP"}, {"port":3832,"proto":"TCP"}], "online":"ONLINE" },
+{"ip":"10.181.97.106","protos":[{"port":20009,"proto":"HTTP"}, {"port":3831,"proto":"TCP"}], "online":"ONLINE" }
+],"checkType":"HTTP", "checkFile":"/status"}
+

@@ -41,6 +41,7 @@ public class SysController {
     status.checkClusters = healthCheckManager.getCheckClusterList();
     status.leader = serverStorage.getLeaderSpec();
     status.statusCache = statusStorage.isEnableCache();
+    status.members = serverStorage.getMembers();
     return new Result(status);
   }
 

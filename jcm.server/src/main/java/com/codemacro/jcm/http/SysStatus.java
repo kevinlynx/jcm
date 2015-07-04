@@ -15,10 +15,12 @@
  *******************************************************************************/
 package com.codemacro.jcm.http;
 
+import java.util.Collection;
 import java.util.Set;
 
 public class SysStatus {
   public String leader;
   public Set<String> checkClusters;
   public boolean statusCache;
+  public Collection<String> members;
 }

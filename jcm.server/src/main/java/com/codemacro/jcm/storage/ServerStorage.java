@@ -15,6 +15,9 @@
  *******************************************************************************/
 package com.codemacro.jcm.storage;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
@@ -22,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import com.codemacro.jcm.health.HealthCheckManager;
 import com.codemacro.jcm.util.ZookeeperLeaderElector;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 
 public class ServerStorage extends ZookeeperPathWatcher {
   private static Logger logger = LoggerFactory.getLogger(ServerStorage.class);
@@ -39,8 +44,8 @@ public class ServerStorage extends ZookeeperPathWatcher {
     this.healthCheckManager = healthCheckManager;
   }
 
-  public void init(String ip, int httpPort, int tcpPort) {
-    this.serverSpec = String.format("%s|%d|%d", ip, httpPort, tcpPort);
+  public void init(String ip, int httpPort) {
+    this.serverSpec = String.format("%s|%d", ip, httpPort);
     logger.info("init server spec as {}", serverSpec);
   }
 
@@ -62,6 +67,16 @@ public class ServerStorage extends ZookeeperPathWatcher {
   
   public String getLeaderSpec() {
     return leaderSpec;
+  }
+
+  public Collection<String> getMembers() {
+    List<String> nodes = getChildren();
+    return Collections2.transform(nodes, new Function<String, String>() {
+      public String apply(String ns) {
+        String path = fullPath + "/" + ns;
+        return new String(getData(path));
+      }
+    });
   }
 
   @Override

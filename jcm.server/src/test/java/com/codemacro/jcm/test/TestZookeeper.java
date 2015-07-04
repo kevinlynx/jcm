@@ -29,18 +29,18 @@ public class TestZookeeper extends TestCase {
     final String ROOT = "/jcm_ut";
     final String ZKHOST = "127.0.0.1:2181";
     ZookeeperStorageEngine zk1 = new ZookeeperStorageEngine();
-    String spec1 = "127.0.0.1|8888|9998";
+    String spec1 = "127.0.0.1|8888";
     ServerStorage ze1 = new ServerStorage(null);
-    ze1.init("127.0.0.1", 8888, 9998);
+    ze1.init("127.0.0.1", 8888);
     zk1.init(ZKHOST, ROOT, 5000);
     zk1.addWatcher(ze1);
     zk1.open();
     assertEquals(spec1, ze1.electLeader());
 
-    String spec2 = "127.0.0.1|8889|9999";
+    String spec2 = "127.0.0.1|8889";
     ZookeeperStorageEngine zk2 = new ZookeeperStorageEngine();
     ServerStorage ze2 = new ServerStorage(null);
-    ze2.init("127.0.0.1", 8889, 9999);
+    ze2.init("127.0.0.1", 8889);
     zk2.init(ZKHOST, ROOT, 5000);
     zk2.addWatcher(ze2);
     zk2.open();

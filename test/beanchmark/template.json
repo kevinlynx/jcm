@@ -1,0 +1,4 @@
+{"name":"cluster","online":"ONLINE","nodes":[
+    
+],"checkType":"HTTP", "checkFile":"/status"}
+
