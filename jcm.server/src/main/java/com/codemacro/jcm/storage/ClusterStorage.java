@@ -86,6 +86,7 @@ public class ClusterStorage extends ZookeeperPathWatcher {
     if (data.isEmpty()) {
       return false;
     }
+    clusterManager.update(cluster);
     String path = fullPath + "/" + cluster.getName();
     return writeData(path, data.getBytes());
   }
@@ -116,7 +117,10 @@ public class ClusterStorage extends ZookeeperPathWatcher {
       String json = new String(data);
       try {
         Cluster cluster = JsonUtil.fromString(json, Cluster.class);
-        clusterManager.update(cluster);
+        Cluster existed = clusterManager.find(name);
+        if (existed == null || cluster.getVersion() > existed.getVersion()) {
+          clusterManager.update(cluster);
+        }
       } catch (IOException e) {
         logger.warn("decode cluster failed [{}] {}", name, e);
       }
