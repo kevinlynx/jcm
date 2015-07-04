@@ -50,6 +50,16 @@ See [doc/api.md](https://github.com/kevinlynx/jcm/blob/master/doc/api.md)
 
 If run with tests, startup zookeeper first
 
+### Implementation Brief
+
+Architecture overview:
+
+![simple-arch.jpg](https://raw.githubusercontent.com/kevinlynx/jcm/master/doc/asset/simple-arch.jpg)
+
+Module overview:
+
+![impl-module.jpg](https://raw.githubusercontent.com/kevinlynx/jcm/master/doc/asset/impl-module.jpg)
+
 ### LICENSE
 
     /*******************************************************************************
