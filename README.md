@@ -7,6 +7,8 @@ JCM is a distributed name service implementation based on ZooKeeper.
 * manage more than hundred thousand nodes (ip)
 * map cluster name to node(ip) list
 * health checking on every node
+    * http status check
+    * tcp connection check
 * persistent storage cluster list into zookeeper
 * totally distributed, read and write every JCM server
 * HTTP api based on JSON
@@ -14,15 +16,16 @@ JCM is a distributed name service implementation based on ZooKeeper.
 ### Run
 
 1. start zookeeper first (standalone or distributed)
-2. start JCM server
+2. write config file, see [config/application.properties](https://github.com/kevinlynx/jcm/blob/master/jcm.server/config/application.properties)
+3. start JCM server
 
         java -jar jcm.server-0.1.0.jar
 
-3. add some clusters with nodes to JCM with HTTP api
+4. add some clusters with nodes to JCM with HTTP api
 
         curl -i -X POST http://10.181.97.106:8080/c -H "Content-Type:application/json" --data-binary @./doc/cluster_sample.json
 
-4. use jcm.subscriber to subscribe clusters, to get nodes from JCM server
+5. use jcm.subscriber to subscribe clusters, to get nodes from JCM server
 
 ### Subscriber Usage
 

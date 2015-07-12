@@ -49,6 +49,7 @@ public class HealthCheckManager implements CheckProvider {
     this.statusStorage = statusStorage;
     checkClusters = new ConcurrentHashMap<String, Cluster>();
     checkers.add(new HttpChecker(this));
+    checkers.add(new TcpChecker(this));
   }
   
   public void startup(int interval) {
